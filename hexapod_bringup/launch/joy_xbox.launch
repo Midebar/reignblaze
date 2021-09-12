@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Just Joy Xbox teleop from remote PC -->
+
+<launch>
+    <arg name="joy_mapping" default="joystick_xbox"/>
+    <rosparam command="load" file="$(find hexapod_description)/params/$(arg joy_mapping).yaml" />
+    <include file="$(find hexapod_bringup)/launch/components/joy_teleop.launch" />
+</launch>
