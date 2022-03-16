@@ -1,0 +1,430 @@
+Modul OJT Reignblaze 2022
+
+
+
+
+
+[Logo UI]
+
+
+
+
+
+
+
+
+
+Dibuat oleh:
+Mikhael Deo Barli – Ilkom ‘19
+
+Daftar Isi
+Install distribusi GNU/Linux dengan VirtualBox / VMWare	3
+Install ROS pada Linux	13
+Struktur ROS	15
+ROS Node Subscriber dan Publisher	28
+Gazebo dan URDF	28
+Gerak Manual pada Virtual Gazebo ROS	28
+Gerak Manual Reignblaze	28
+Computer Vision	28
+SLAM	28
+Gerak Autonomous Reignblaze	28
+Objektif Reignblaze	28
+References	28
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Install distribusi GNU/Linux dengan VirtualBox / VMWare
+** Jika sudah install distribusi GNU yang dapat mengakses debian package, skip step ini
+ 
+ 
+ 
+Secara mudah dapat dilihat pada website: https://ubuntu.com/tutorials/how-to-run-ubuntu-desktop-on-a-virtual-machine-using-virtualbox#1-overview
+
+
+Agar seragam, kita menggunakan distro Ubuntu 20.04 LTS. Secara singkat, untuk instalasi distro Ubuntu dapat dilakukan dengan cara:
+Download image file Ubuntu pada website https://ubuntu.com/download/desktop 
+Setelah mendownload image Ubuntu, bukalah VirtualBox yang sudah diinstal dan membuat virtual machine baru
+ 
+
+
+
+
+Akan muncul window seperti ini, isi nama, dan OS serta versi distro yang dipilih
+ 
+RAM minimal untuk sebuah Virtual Machine adalah 3000-4000 MB agar mesin berjalan denagn aman/tanpa crash
+ 
+
+Karena kita membuat baru, maka kita menggunakan virtual hard disk yang baru juga 
+Menggunakan VDI agar bias diimport/export pada aplikasi VirtualBox 
+
+Jika kita mempunyai space hard disk yang besar kita bias menggunakan fixed size agar lancer, akan tetapi untuk mengurangi pemakaian hard disk kita daapt memilih dynamically allocated agar space yang tidak digunakan virtual machine tetap kosong
+ 
+Disarankan agar size dari hard disk virtual machine adalah 30-40 GB 
+Pilih image yang telah didownload
+ 
+ 
+ 
+
+
+
+
+Klik Start jika sudah memilij image
+ 
+Jika ingin, untuk mengubah jendela tampilan klik kanan pada icon di kotak merah
+ 
+
+
+Klik Install Ubuntu 
+ 
+ 
+Klik Install Now
+ 
+ 
+
+Isi dengan nama dan password yang mudah diingat karena hanya akan dipakai ketika integrasi dengan robot saja
+ 
+Install ROS pada Linux
+
+Bukalah terminal dan ikuti tahapan berikutnya
+Setup sources.list
+Setup distro untuk instalasi ROS Noetic:
+•	sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+Set up keys
+•	sudo apt install curl # if you haven't already installed curl
+•	curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+
+
+Instalasi
+Update distro yang sedang dijalankan:
+•	sudo apt update
+Desktop-Full Install: (Recommended): Everything in Desktop plus 2D/3D simulators and 2D/3D perception packages
+•	sudo apt install ros-noetic-desktop-full
+Bash
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+Dependencies for building packages
+Banyak paket ROS yang memerlukan dependencies ke paket lain. Kali ini kita akan melakukan instalasi dependencies dasar yang diperlukan banyak paket lain
+Jalankan:
+sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
+Inisiasi rosdep
+Rosdep diperlukan untuk instalasi dependencies secara mudah yang akan dipakai pada workspace nanti. Inisiasikan rosdep dengan perintah:
+sudo rosdep init
+rosdep update
+
+
+
+
+
+
+
+
+Struktur ROS
+Workspace Catkin
+ROS bekerja dengan workspace dan paket yang ditentukan sehingga tidak mencampuri program lain yang sedang berjalan pada OS tersebut
+$ mkdir -p ~/catkin_ws/src
+$ cd ~/catkin_ws/
+$ catkin_make
+Setelah menjalan catkin_make, maka ada file bernama “CMakeLists.txt” yang isinya berupa dependencies-dependencies yang diperlukan oleh workspace tersebut, juga ada 2 folder yang terbuat, yaitu folder “build” dan “devel”. Folder “build” merupakan hasil compile dari script dan program pada folder “src” dan folder “devel” digunakan sebagai script untuk compile folder “src”
+Untuk menjalankan script yang sudah dicompile oleh catkin pada workspace, jalankan:
+$ source devel/setup.bash
+Untuk masuk pada tutorial, kita menginstall ros-tutorial dengan command:
+$ sudo apt-get install ros-<distro>-ros-tutorials
+Karena kita menggunakan ROS Neotic maka, kita menjalankan:
+$ sudo apt-get install ros-noetic-ros-tutorials
+Rospack
+Rospack digunakan untuk mencari paket yang sudah diinstal
+$ rospack find [package_name]
+Contoh:
+$ rospack find roscpp
+
+
+
+
+
+Create ROS Package
+Untuk membuat ros package, masuk ke catkin_workspace yang sudah dibuat, lalu menggunakan perintah catkin_create_pkg. 
+Syntax catkin create_pkg:
+catkin_create_pkg <package_name> [depend1] [depend2] [depend3]
+Kita akan membuat ros package tutorial dengan command:
+catkin_create_pkg beginner_tutorials std_msgs rospy roscpp
+Lalu, kita pergi ke folder utama dan menggunakan perintah catkin_make dan source devel/setup.sh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ROS Nodes
+Ros Nodes menggunakan python pada rospy atau C++ pada roscpp. Untuk menjalankan ros pada master, kita gunakan command:
+$ roscore
+Contoh dari hasil:
+... logging to ~/.ros/log/9cf88ce4-b14d-11df-8a75-00251148e8cf/roslaunch-machine_name-13039.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+
+started roslaunch server http://machine_name:33919/
+ros_comm version 1.4.7
+
+SUMMARY
+======
+
+PARAMETERS
+ * /rosversion
+ * /rosdistro
+
+NODES
+
+auto-starting new master
+process[master]: started with pid [13054]
+ROS_MASTER_URI=http://machine_name:11311/
+
+setting /run_id to 9cf88ce4-b14d-11df-8a75-00251148e8cf
+process[rosout-1]: started with pid [13067]
+started core service [/rosout]
+
+
+Jika roscore tidak dapat dijalankan dan errornya berupa permission, gunakan command:
+$ sudo chown -R <your_username> ~/.ros
+Untuk melihat nodes yang aktif gunakan:
+$ rosnode list
+Rosrun
+Rosrun digunakan untuk menjalankan node pada sebuah package.
+Syntax rosrun:
+$ rosrun [package_name] [node_name]
+Contoh untuk menjalankan turtlesim:
+$ rosrun turtlesim turtlesim_node
+Lalu kita bisa cek node yang sedang berjalan pada rosnode list
+/rosout
+/turtlesim
+Untuk menjalankan turtle pada turtle sim bisa menjalankan command berikut di command terminal yang baru:
+$ rosrun turtlesim turtle_teleop_key
+Keyboard dan turtlesim dapat berkomunikasi melalui ROS Topics. Maka dari itu, kita bisa cek node yang saling berhubungan dan berkomunikasi melalui command syntax pada terminal baru:
+$ rosrun rqt_graph rqt_graph
+Akan muncul tampilan seperti:
+ 
+
+Untuk melihat data rostopic yang sedang dijalankan oleh node dapat menggunakan syntax pada terminal baru:
+$ rostopic echo /turtle1/cmd_vel
+Karena tidak ada data yang dipublish, maka rostopic echo akan mereturn null. Kita akan pindah ke terminal yang sudah dijalaknkan untuk turtle teleop lalu menggerakan turtle dari terminal tersebut.
+Untuk melihat topic apa saja yang sedang ROS jalankan kita bisa menggunakan syntax:
+$ rostopic list -v
+Sebuah publisher dan subscriber sebaiknya mengirim dan menerima dengan tipe data yang sama pada suatu topik. Untuk mengecek tipe sebuah topik bisa menggunakan syntax:
+$ rostopic type [topic]
+Contoh:
+$ rostopic type /turtle1/cmd_vel
+Ros Service
+Servis digunakan untuk node mengirim dan menerima sebuah pesan/topik. Syntax:
+Usage:
+rosservice list         print information about active services
+rosservice call         call the service with the provided args
+rosservice type         print service type
+rosservice find         find services by service type
+rosservice uri          print service ROSRPC uri
+Perbedaan dari Ros Service dan Ros Topic adalah Design Pattern. Ros Servis menggunakan Design Patern Observer, sedangkan Ros Topic menggunakan Design Pattern Publisher/Subscriber. Observer menerapkan one-to-one communication antar node, sedangkan publisher/subscriber menerapkan many-to-many, sehingga observer lebih mudah diterapkan, menggunakan resource lebih ringan, sedangkan pub/sub lebih modular dan dinamis.
+RqtConsole dan Logger
+Rqt_console menghasilkan output dari sebuah nodes, sedangkan rqt_logger_level digunakan untuk megubah verbose (DEBUG, WARN, INFO, and ERROR) dari sebuah nodes.
+Matikan semua nodes yang sedang berjalan dengan restart roscore dengan cara mematikan roscore (CTRL+C pada terminal roscore) lalu dengan memastikan dengan syntax:
+$ sudo killall -9 roscore
+$ sudo killall -9 rosmaster
+Bukalah terminal windows baru dan jalankan ulang roscore. Lalu, bukalah 4 terminal windows baru dan jalankan syntax berikut pada setiap window yang berbeda:
+$ rosrun turtlesim turtlesim_node
+
+$ rosrun turtlesim turtle_teleop_key
+
+$ rosrun rqt_console rqt_console
+
+$ rosrun rqt_logger_level rqt_logger_level
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Akan muncul window rqt_console, seperti berikut:
+ 
+Dan window rqt_logger_level:
+ 
+
+
+
+
+
+Rqt_console akan mengembalikan output dari pose sebuah robot. Contoh robot yang menabrak dinding pada turtlesim:
+ 
+Ada beberapa level dari logging yang dilakukan oleh ros:
+Fatal
+Error
+Warn
+Info
+Debug
+RosLaunch
+Roslaunch digunakan untuk menjalankan script yang ada pada sebuah package catkin. Kita kembali ke folder awal dan melakukan setup dengan syntax:
+$ source devel/setup.bash
+$ roscd beginner_tutorials
+
+$ mkdir launch
+$ cd launch
+
+
+
+Lalu kita membuat script launch yang akan menjalankan turtlesim node:
+<launch>
+
+  <group ns="turtlesim1">
+    <node pkg="turtlesim" name="sim" type="turtlesim_node"/>
+  </group>
+
+  <group ns="turtlesim2">
+    <node pkg="turtlesim" name="sim" type="turtlesim_node"/>
+  </group>
+
+  <node pkg="turtlesim" name="mimic" type="mimic">
+    <remap from="input" to="turtlesim1/turtle1"/>
+    <remap from="output" to="turtlesim2/turtle1"/>
+  </node>
+
+</launch>
+Kita save file tersebut dengan nama turtlemimic.launch. File tersebut menjalankan 2 node turtlesim berbeda. Akan menampilkan hasil seperti:
+ 
+Lalu kita akan launch file tersebut dengan syntax:
+$ roslaunch beginner_tutorials turtlemimic.launch
+Lalu untuk melihat graph nodenya kita menggunakan syntax:
+
+
+Berikut merupakan rqt_graph dari node yang dijalankan:  
+RosEd
+Rosed digunakan untuk mengedit sebuah file tanpa mengetikkan full directory path pada file tersebut. Syntax:
+$ rosed [package_name] [filename]
+Msg dan Srv
+Msg merupakan file yang digunakan untuk menjelaskan data dari sebuah ROS message, seperti menerima perintah C++ dan dikonvert ke python untuk dieksekusi pada mesin tujuan 
+Srv merupakan file servis yang terdiri dari request dan response
+Msg menerima tipe data standard, seperti:
+•	int8, int16, int32, int64 (plus uint*)
+•	float32, float64
+•	string
+•	time, duration
+•	other msg files
+•	variable-length array[] and fixed-length array[C]
+Lalu juga ada header, yang merupakan data timestamp
+
+Contoh msg:
+  Header header
+  string child_frame_id
+  geometry_msgs/PoseWithCovariance pose
+  geometry_msgs/TwistWithCovariance twist
+Contoh srv:
+int64 A
+int64 B
+--- // Selalu dipisah dengan --- A dan B merupakan request dan Sum merupakan response
+int64 Sum
+Kita akan mencoba membuat msg dan srv. Buka folder tutorial yg telah dibuat pada directory home dan melakukan syntax:
+$ roscd beginner_tutorials
+$ mkdir msg
+$ echo "int64 num" > msg/Num.msg
+Buka file package.xml dan tambahkan line berikut:
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+Hasilnya:
+ 
+Lalu buka CMakeLists.txt dan tambahkan line message_generation pada find_package():
+ 
+Lalu tambahkan line CATKIN_DEPENDS message_runtime pada catkin_package():
+ 
+Lalu kita uncomment dan mengedit msg sehingga seperti:
+ 
+Rosmsg
+Kita akan memanggil msg yang telah dibuat dengan syntax:
+$ rosmsg show beginner_tutorials/Num
+Rossrv
+Kita akan mengcopy srv yang sudah ada dengan syntax:
+$ roscp [package_name] [file_to_copy_path] [copy_path]
+Kita akan copy dari rospy_tutorial:
+$ roscp rospy_tutorials AddTwoInts.srv srv/AddTwoInts.srv
+Lalu kita akan membuka file CMakeLists.txt kembali dan mengedit line service, seperti:
+ 
+Lalu kita akan memanggil rossrv:
+$ rossrv show beginner_tutorials/AddTwoInts
+Setelah melihat hasil dari msg dan srv, kita kembali ke root workspace dan melakukan catkin_make untuk mengcompile code yang ada agar bisa dipanggil C++ maupun Python.
+Ringkasan:
+rospack = ros+pack(age) : provides information related to ROS packages
+roscd = ros+cd : changes directory to a ROS package or stack
+rosls = ros+ls : lists files in a ROS package
+roscp = ros+cp : copies files from/to a ROS package
+rosmsg = ros+msg : provides information related to ROS message definitions
+rossrv = ros+srv : provides information related to ROS service definitions
+catkin_make : makes (compiles) a ROS package
+rosmake = ros+make : makes (compiles) a ROS package (if you're not using a catkin workspace)
+catkin build: makes (compiles) a ROS package in an isolated manner while maintaining efficiency due to parallelisation
+catkin_make + catkin_make_isolated
+ROS Node Subscriber dan Publisher
+**Jika ingin melihat praktek langsung, gunakan Arduino, Rosserial, dan sebuah Servo
+Rosnode Python
+Kita akan memulai dengan simple talker dan listener sebagai publisher dan subscriber node. Kita akan mengambil sample code dari github dengan wget dan mengubah menjadi executable file:
+$ wget https://raw.github.com/ros/ros_tutorials/noetic-devel/rospy_tutorials/001_talker_listener/talker.py
+$ chmod +x talker.py
+Setelah itu kita akan mengedit CMakeLists.txt dan mengedit line catkin_install_python() menjadi:
+ 
+
+Rosserial Arduino
+Jika error “cstring is not a file or directory”, bisa merujuk: https://answers.ros.org/question/361930/rosserial-arduino-compilation-error-no-cstring 
+
+Untuk C++ bisa akses link: http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28c%2B%2B%29 
+
+Gazebo dan URDF
+
+URDF
+
+Gerak Manual pada Virtual Gazebo ROS
+Gerak Manual Reignblaze
+Computer Vision
+** Menggunakan Pi camera pada robot.
+SLAM
+** Menggunakan Lidar pada robot
+Gerak Autonomous Reignblaze
+Objektif Reignblaze
+
+Referensi
+ROS. (2014, 9 22). Rosserial Tutorials. Retrieved from ROS.org: http://wiki.ros.org/rosserial_arduino/Tutorials
+ROS. (2021, 6 3). ROS Tutorial. Retrieved from ROS.org: http://wiki.ros.org/ROS/Tutorials
+
+
